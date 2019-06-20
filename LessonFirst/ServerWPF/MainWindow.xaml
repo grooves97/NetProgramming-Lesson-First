@@ -13,7 +13,7 @@
         <Label Content="IP Server" HorizontalAlignment="Left" Margin="44,245,0,0" VerticalAlignment="Top" Width="158"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="225,246,0,0" VerticalAlignment="Top" Width="120"/>
         <Button Name="StartButton" Click="StartButtonClick" Content="Start" HorizontalAlignment="Left" Margin="44,337,0,0" VerticalAlignment="Top" Width="75"/>
-        <Button Name="CloseButton" Content="Close" HorizontalAlignment="Left" Margin="197,337,0,0" VerticalAlignment="Top" Width="75"/>
+        <Button Name="CloseButton" Click="CloseButtonClick" Content="Close" HorizontalAlignment="Left" Margin="197,337,0,0" VerticalAlignment="Top" Width="75"/>
 
     </Grid>
 </Window>

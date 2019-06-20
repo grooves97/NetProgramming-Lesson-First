@@ -23,10 +23,12 @@ namespace ServerWPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        private bool buttonIsStart;
-        private TcpListener serverSock;
-        private Thread serverThread;
-        private ManualResetEvent eventStop;
+        private bool _buttonIsStart;
+        private TcpListener _serverSock;
+        private Thread _serverThread;
+        private ManualResetEvent _eventStop;
+        private List<ClientInfo> listClients;
+
 
         public MainWindow()
         {
@@ -42,10 +44,13 @@ namespace ServerWPF
                 IPAddresComboBox.Items.Add(i.ToString());
             }
 
-            buttonIsStart = false;
-            serverSock = null;
-            serverThread = null;
+            _buttonIsStart = false;
+            _serverSock = null;
+            _serverThread = null;
+            _eventStop = new ManualResetEvent(false);
         }
+
+
         /// <summary>
         /// Кнопка включения выключения чего-то
         /// </summary>
@@ -53,16 +58,16 @@ namespace ServerWPF
         /// <param name="e"></param>
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
-            if (!buttonIsStart) //запуск сервера
+            if (!_buttonIsStart) //запуск сервера
             {
                 try
                 {
-                    serverSock = new TcpListener(IPAddress.Parse(IPAddresComboBox.Text), int.Parse(PortTextBox.Text));
+                    _serverSock = new TcpListener(IPAddress.Parse(IPAddresComboBox.Text), int.Parse(PortTextBox.Text));
 
-                    serverSock.Start();
-                    serverThread = new Thread(ServerThreadProcess);
-                    serverThread.Start(serverSock);
-                    buttonIsStart = !buttonIsStart;
+                    _serverSock.Start();
+                    _serverThread = new Thread(ServerThreadProcess);
+                    _serverThread.Start(_serverSock);
+                    _buttonIsStart = !_buttonIsStart;
                     StartButton.Content = "Stop";
                 }
                 catch (Exception exception)
@@ -78,6 +83,8 @@ namespace ServerWPF
 
           
         }
+
+
         /// <summary>
         /// Поток сервера
         /// </summary>
@@ -92,13 +99,16 @@ namespace ServerWPF
                 //Обработка клиента в поле потоков
                 //ThreadPool.QueueUserWorkItem(ThreadClient, client);
                 //Вариант второй
-                IAsyncResult asyncResult = serverSock.BeginAcceptSocket(AsyncServerProc, serverSock);
+                IAsyncResult asyncResult = _serverSock.BeginAcceptSocket(AsyncServerProc, _serverSock);
                 asyncResult.AsyncWaitHandle.WaitOne();
 
-                //if (eventStop.Wa)
-                //{
-
-                //}
+                while (asyncResult.AsyncWaitHandle.WaitOne(200) == false)
+                {
+                    if (_eventStop.WaitOne(0) == true)
+                    {
+                        return;
+                    }
+                }
             }
         }
 
@@ -107,9 +117,25 @@ namespace ServerWPF
             TcpListener serverSock = (TcpListener)ar.AsyncState;
 
             TcpClient client = serverSock.EndAcceptTcpClient(ar);
-            //Запуск потока клиента в пуле потоков
-            //ThreadPool.QueueUserWorkItem(ThreadClient, client);
 
+            WriteToLog("Подключился клиент\r\n");
+            WriteToLog($"IP адрес клиента: {client.Client.RemoteEndPoint.ToString()}\r\n");
+            //Запуск потока клиента в пуле потоков
+            ThreadPool.QueueUserWorkItem(ThreadClientProcess, client);
+
+        }
+
+
+        private void WriteToLog(string str)
+        {
+            logTextBox.Text += str;
+
+
+            //
+            Dispatcher.Invoke(() =>
+            {
+                logTextBox.AppendText(str);
+            });
         }
 
         /// <summary>
@@ -120,7 +146,41 @@ namespace ServerWPF
         {
             TcpClient client = (TcpClient)obj;
             //Работа с клиентом через объектов TcpClient
+            WriteToLog("Рабочий поток клиентов запущен\r\n");
+
+            byte[] buf = new byte[4 * 1024];//4Kb
+            string clientName;//Имя клиента
+
             //Определить общение с клиентом
+            //Ждем имя клиента, пользователя мессенджера
+            int recSize = client.Client.Receive(buf);
+            clientName = Encoding.UTF8.GetString(buf, 0, recSize);
+
+            WriteToLog($"Клиент: {clientName}\r\n");
+            //Ответ сервера клиенту - Welcome to ******
+
+            client.Client.
+                Send(Encoding.ASCII.GetBytes($"Welcome {clientName}"));
+            //добавление клиента в список
+            ClientInfo v = new ClientInfo
+            {
+                Client = client,
+                Name = clientName
+            };
+
+            while (true)
+            {
+                recSize = client.Client.Receive(buf);
+                string message = Encoding.UTF8.GetString(buf);
+                //отправить сообщение всем подключенным клиентам
+                client.Client.Send(Encoding.ASCII.GetBytes(message));
+
+            }
+        }
+
+        private void CloseButtonClick(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
         }
     }
 }
