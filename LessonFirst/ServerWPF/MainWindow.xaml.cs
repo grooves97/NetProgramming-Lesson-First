@@ -100,7 +100,7 @@ namespace ServerWPF
                 //ThreadPool.QueueUserWorkItem(ThreadClient, client);
                 //Вариант второй
                 IAsyncResult asyncResult = _serverSock.BeginAcceptSocket(AsyncServerProc, _serverSock);
-                asyncResult.AsyncWaitHandle.WaitOne();
+                //asyncResult.AsyncWaitHandle.WaitOne();
 
                 while (asyncResult.AsyncWaitHandle.WaitOne(200) == false)
                 {
@@ -128,10 +128,6 @@ namespace ServerWPF
 
         private void WriteToLog(string str)
         {
-            logTextBox.Text += str;
-
-
-            //
             Dispatcher.Invoke(() =>
             {
                 logTextBox.AppendText(str);
@@ -174,7 +170,6 @@ namespace ServerWPF
                 string message = Encoding.UTF8.GetString(buf);
                 //отправить сообщение всем подключенным клиентам
                 client.Client.Send(Encoding.ASCII.GetBytes(message));
-
             }
         }
 

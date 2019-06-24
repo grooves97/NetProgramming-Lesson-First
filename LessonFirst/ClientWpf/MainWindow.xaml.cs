@@ -54,8 +54,8 @@ namespace ClientWpf
             try
             {
                 _client.Connect(IPAddress.Parse(ipTextBox.Text), int.Parse(portTextBox.Text));
-                MessageBox.Show("Связь с сервером установлена");
                 ThreadPool.QueueUserWorkItem(ServerClientThread, _client);
+                MessageBox.Show("Связь с сервером установлена");
             }
             catch (Exception exception)
             {
@@ -71,13 +71,12 @@ namespace ClientWpf
             client.Client.Send(Encoding.UTF8.GetBytes("adads"));
             byte[] buf = new byte[4 * 1024];//4Kb
             int recSize = client.Client.Receive(buf);
-            Encoding.UTF8.GetString(buf, 0, recSize);
+            WriteToLog(Encoding.UTF8.GetString(buf, 0, recSize));
 
             while (true)
             {
                 recSize = client.Client.Receive(buf);
-                string message = Encoding.UTF8.GetString(buf);
-                serverTextBox.Text = message;
+                WriteToLog(Encoding.UTF8.GetString(buf,0,recSize));
                 //client.Client.Send(Encoding.ASCII.GetBytes(message));
 
             }
@@ -85,8 +84,6 @@ namespace ClientWpf
 
         private void SaveToBlock(string str)
         {
-            serverTextBox.Text = str;
-
             Dispatcher.Invoke(() =>
             {
                 serverTextBox.AppendText(str);
@@ -95,8 +92,6 @@ namespace ClientWpf
 
         private void WriteToLog(string str)
         {
-            logTextBox.Text += str;
-
             Dispatcher.Invoke(() =>
             {
                 logTextBox.AppendText(str);
