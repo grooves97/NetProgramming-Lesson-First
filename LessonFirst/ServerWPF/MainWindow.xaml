@@ -9,7 +9,7 @@
     <Grid>
         <TextBox Name="logTextBox" Height="231" Margin="44,10,42,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <ComboBox Name="IPAddresComboBox" HorizontalAlignment="Left" Margin="44,276,0,0" VerticalAlignment="Top" Width="158" Height="26"/>
-        <TextBox Name="PortTextBox" HorizontalAlignment="Left" Height="26" Margin="225,276,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="PortTextBox" HorizontalAlignment="Left" Height="26" Margin="225,276,0,0" TextWrapping="Wrap" Text="12345" VerticalAlignment="Top" Width="120"/>
         <Label Content="IP Server" HorizontalAlignment="Left" Margin="44,245,0,0" VerticalAlignment="Top" Width="158"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="225,246,0,0" VerticalAlignment="Top" Width="120"/>
         <Button Name="StartButton" Click="StartButtonClick" Content="Start" HorizontalAlignment="Left" Margin="44,337,0,0" VerticalAlignment="Top" Width="75"/>
